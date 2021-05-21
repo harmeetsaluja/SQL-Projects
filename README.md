@@ -1,2 +1,2 @@
 # SQL-Projects
-Data analysis using SQL
+Using SQL for Data Analysis on various datasets
