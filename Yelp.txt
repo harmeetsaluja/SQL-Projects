@@ -1,0 +1,513 @@
+Profiling and Analyzing the Yelp Dataset
+
+Data Profiling
+
+
+1. Total number of records for each table:
+
+SELECT count(*)
+FROM table_name
+	
+i. Attribute table = 10000
+ii. Business table = 10000
+iii. Category table = 10000 
+iv. Checkin table = 10000
+v. elite_years table = 10000 
+vi. friend table = 10000
+vii. hours table = 10000
+viii. photo table = 10000
+ix. review table = 10000
+x. tip table = 10000
+xi. user table = 10000
+	
+
+
+2. Total distinct records for each table:
+
+SELECT count(DISTINCT p_key/f_key)
+FROM table_name
+
+i. Business = 10000
+ii. Hours = 1562
+iii. Category = 2643
+iv. Attribute = 1115
+v. Review = 10000
+vi. Checkin = 493
+vii. Photo = 10000 (by 'id' column)
+viii. Tip = 537 (by 'user_id' column)
+ix. User = 10000
+x. Friend = 11
+xi. Elite_years = 2780
+
+
+3. Check null values in Users table:
+
+There are no null values
+	
+	
+SQL code: 
+               
+--select all records from user table where any of the rows has a null value.
+--if count(*)=0, then we do not have a null value in any column
+
+SELECT count(*)
+FROM user
+WHERE id IS NULL
+	OR name IS NULL
+	OR review_count IS NULL
+	OR yelping_since IS NULL
+	OR useful IS NULL
+	OR funny IS NULL
+	OR cool IS NULL
+	OR fans IS NULL
+	OR average_stars IS NULL
+	OR compliment_hot IS NULL
+	OR compliment_more IS NULL
+	OR compliment_profile IS NULL
+	OR compliment_cute IS NULL
+	OR compliment_list IS NULL
+	OR compliment_note IS NULL
+	OR compliment_plain IS NULL
+	OR compliment_cool IS NULL
+	OR compliment_funny IS NULL
+	OR compliment_writer IS NULL
+	OR compliment_photos IS NULL
+
+		
+
+	
+4. Average, minimum and mximum values for some fields:
+
+SELECT min(column_name)        SELECT max(column_name)        SELECT avg(column_name)
+FROM table_name                FROM table_name                FROM table_name
+
+	i. Table: Tip, Column: Likes
+	
+		min:0		max:5.0		avg:0.0144
+
+        ii. Table: Review, Column: Stars
+	
+		min:1		max:5		avg:3.7082
+		
+	
+	iii. Table: Checkin, Column: Count
+	
+		min:1		max:53		avg:1.9414
+		
+
+       iv. Table: Business, Column: Stars
+	
+		min:1.0		max:5.0		avg:3.6549
+	
+	
+	v. Table: User, Column: Review_count
+	
+		min:0		max:2000		avg:24.2995
+		
+
+
+5. Cities with the most reviews in descending order:
+
+SQL code:
+
+SELECT city
+	,sum(review_count) AS reviews --select columns city and count total number of reviews
+FROM business
+GROUP BY city --group the reviews by city
+ORDER BY reviews DESC --arrange the review counts in descending order
+	
+	
+Result:
++-----------------+---------+
+| city            | reviews |
++-----------------+---------+
+| Las Vegas       |   82854 |
+| Phoenix         |   34503 |
+| Toronto         |   24113 |
+| Scottsdale      |   20614 |
+| Charlotte       |   12523 |
+| Henderson       |   10871 |
+| Tempe           |   10504 |
+| Pittsburgh      |    9798 |
+| Montréal        |    9448 |
+| Chandler        |    8112 |
+| Mesa            |    6875 |
+| Gilbert         |    6380 |
+| Cleveland       |    5593 |
+| Madison         |    5265 |
+| Glendale        |    4406 |
+| Mississauga     |    3814 |
+| Edinburgh       |    2792 |
+| Peoria          |    2624 |
+| North Las Vegas |    2438 |
+| Markham         |    2352 |
+| Champaign       |    2029 |
+| Stuttgart       |    1849 |
+| Surprise        |    1520 |
+| Lakewood        |    1465 |
+| Goodyear        |    1155 |
++-----------------+---------+
+(25 of 362 total rows shown)
+	
+
+	
+6. Distribution of star ratings to the business in some cities:
+
+i. Avon
+
+SQL code:
+
+SELECT stars AS star_rating
+	,sum(review_count) AS count
+FROM business
+WHERE city = 'Avon'
+GROUP BY stars
+ORDER BY stars
+
+
+Result:
++-------------+-------+
+| star_rating | count |
++-------------+-------+
+|         1.5 |    10 |
+|         2.5 |     6 |
+|         3.5 |    88 |
+|         4.0 |    21 |
+|         4.5 |    31 |
+|         5.0 |     3 |
++-------------+-------+
+
+ii. Beachwood
+
+SQL code:
+
+SELECT stars AS star_rating
+	,sum(review_count) AS count
+FROM business
+WHERE city = 'Beachwood'
+GROUP BY stars
+ORDER BY stars
+
+
+Result:
++-------------+-------+
+| star_rating | count |
++-------------+-------+
+|         2.0 |     8 |
+|         2.5 |     3 |
+|         3.0 |    11 |
+|         3.5 |     6 |
+|         4.0 |    69 |
+|         4.5 |    17 |
+|         5.0 |    23 |
++-------------+-------+
+		
+
+
+7. Top 3 users based on their total number of reviews:
+		
+SQL code:
+
+SELECT name
+	,review_count
+FROM user
+ORDER BY review_count DESC limit 3
+	
+		
+Result:
++--------+--------------+
+| name   | review_count |
++--------+--------------+
+| Gerald |         2000 |
+| Sara   |         1629 |
+| Yuri   |         1339 |
++--------+--------------+
+		
+
+
+8. Correlation between reviews and fans:
+
+More no of reviews positively correlate to more no of fans. The more number of fans depends on both, 'no of reviews' and 'yelping since' columns.
+
+Firstly I retrieve only fans and review columns using code-
+
+SELECT name
+	,review_count
+	,fans
+FROM user
+ORDER BY fans DESC
+
+The top 25 rows are as follows:
+
++-----------+--------------+------+
+| name      | review_count | fans |
++-----------+--------------+------+
+| Amy       |          609 |  503 |
+| Mimi      |          968 |  497 |
+| Harald    |         1153 |  311 |
+| Gerald    |         2000 |  253 |
+| Christine |          930 |  173 |
+| Lisa      |          813 |  159 |
+| Cat       |          377 |  133 |
+| William   |         1215 |  126 |
+| Fran      |          862 |  124 |
+| Lissa     |          834 |  120 |
+| Mark      |          861 |  115 |
+| Tiffany   |          408 |  111 |
+| bernice   |          255 |  105 |
+| Roanna    |         1039 |  104 |
+| Angela    |          694 |  101 |
+| .Hon      |         1246 |  101 |
+| Ben       |          307 |   96 |
+| Linda     |          584 |   89 |
+| Christina |          842 |   85 |
+| Jessica   |          220 |   84 |
+| Greg      |          408 |   81 |
+| Nieves    |          178 |   80 |
+| Sui       |          754 |   78 |
+| Yuri      |         1339 |   76 |
+| Nicole    |          161 |   73 |
++-----------+--------------+------+
+
+Here we can see that not everyone who has a higher review count shows more fans. Example: Harald and gerald have more no of review_counts than Amy, but their fans are less than Amy. This means that there is some other factor in play as well. By common sense we can assume that a person has a chance of having more number of fans if he/she is yelping since a longer time than someone who has started yelpinfg recently. So I retrieve the yelping_since column and try to analyse the findings below(top 25 rows with most fans in decreasing order)
+
+SELECT name
+	,review_count
+	,fans
+        ,yelping_since
+FROM user
+ORDER BY fans DESC
+
++-----------+--------------+------+---------------------+
+| name      | review_count | fans | yelping_since       |
++-----------+--------------+------+---------------------+
+| Amy       |          609 |  503 | 2007-07-19 00:00:00 |
+| Mimi      |          968 |  497 | 2011-03-30 00:00:00 |
+| Harald    |         1153 |  311 | 2012-11-27 00:00:00 |
+| Gerald    |         2000 |  253 | 2012-12-16 00:00:00 |
+| Christine |          930 |  173 | 2009-07-08 00:00:00 |
+| Lisa      |          813 |  159 | 2009-10-05 00:00:00 |
+| Cat       |          377 |  133 | 2009-02-05 00:00:00 |
+| William   |         1215 |  126 | 2015-02-19 00:00:00 |
+| Fran      |          862 |  124 | 2012-04-05 00:00:00 |
+| Lissa     |          834 |  120 | 2007-08-14 00:00:00 |
+| Mark      |          861 |  115 | 2009-05-31 00:00:00 |
+| Tiffany   |          408 |  111 | 2008-10-28 00:00:00 |
+| bernice   |          255 |  105 | 2007-08-29 00:00:00 |
+| Roanna    |         1039 |  104 | 2006-03-28 00:00:00 |
+| Angela    |          694 |  101 | 2010-10-01 00:00:00 |
+| .Hon      |         1246 |  101 | 2006-07-19 00:00:00 |
+| Ben       |          307 |   96 | 2007-03-10 00:00:00 |
+| Linda     |          584 |   89 | 2005-08-07 00:00:00 |
+| Christina |          842 |   85 | 2012-10-08 00:00:00 |
+| Jessica   |          220 |   84 | 2009-01-12 00:00:00 |
+| Greg      |          408 |   81 | 2008-02-16 00:00:00 |
+| Nieves    |          178 |   80 | 2013-07-08 00:00:00 |
+| Sui       |          754 |   78 | 2009-09-07 00:00:00 |
+| Yuri      |         1339 |   76 | 2008-01-03 00:00:00 |
+| Nicole    |          161 |   73 | 2009-04-30 00:00:00 |
++-----------+--------------+------+---------------------+
+Here we see that our assumption is indeed valid and goes hand in hand with the table.
+We see that Harald and Gerald have both been yelping since 2012, whereas Amy has been yelping since 2007, hence answering the question as to why Amy has more fans.
+	
+
+	
+9. Reviews with the word "love" or with the word "hate" in them:
+
+There are more reviews with the word 'love'
+
+	
+SQL code:
+
+SELECT CASE 
+		WHEN (TEXT LIKE '%love%')
+			THEN 'Reviews with love'
+		WHEN (TEXT LIKE '%hate%')
+			THEN 'Reviews with hate'
+		ELSE 'Other'
+		END review_word
+	,count(TEXT)
+FROM review
+GROUP BY review_word
+HAVING NOT review_word = 'Other'
+
+Result:
++-------------------+-------------+
+| review_word       | count(text) |
++-------------------+-------------+
+| Reviews with hate |         178 |
+| Reviews with love |        1780 |
++-------------------+-------------+
+
+	
+10. Top 10 users with the most fans:
+
+SQL code:
+
+SELECT id
+	,name
+	,fans
+FROM user
+ORDER BY fans DESC limit 10
+	
+Result:
++------------------------+-----------+------+
+| id                     | name      | fans |
++------------------------+-----------+------+
+| -9I98YbNQnLdAmcYfb324Q | Amy       |  503 |
+| -8EnCioUmDygAbsYZmTeRQ | Mimi      |  497 |
+| --2vR0DIsmQ6WfcSzKWigw | Harald    |  311 |
+| -G7Zkl1wIWBBmD0KRy_sCw | Gerald    |  253 |
+| -0IiMAZI2SsQ7VmyzJjokQ | Christine |  173 |
+| -g3XIcCb2b-BD0QBCcq2Sw | Lisa      |  159 |
+| -9bbDysuiWeo2VShFJJtcw | Cat       |  133 |
+| -FZBTkAZEXoP7CYvRV2ZwQ | William   |  126 |
+| -9da1xk7zgnnfO1uTVYGkA | Fran      |  124 |
+| -lh59ko3dxChBSZ9U7LfUw | Lissa     |  120 |
++------------------------+-----------+------+
+	
+
+		
+
+Inferences and Analysis
+
+1. Let's chose city as Las Vegas and category as Restaurants.
+(Note: We see that there are only 4 different businesses(Wingstop, Jacques Cafe, Big Wong Restaurant, and Hibachi-San) for this selection, hence this is not a great sample size)
+	
+i. Distribution of hours:
+
+On an average, the 4-5 stars group has lesser duration of hours compared to 2-3 stars group
+(Note: For one of the businesses (Hibachi-San), hours data is not given, hence it is excluded from this analysis)
+
+
+ii. Number of reviews:
+
+On an average, the 4-5 stars group has more no of reviews compared to 2-3 stars group
+If we see individually, review count for Big Wong Restaurant>>> Wingstop but that of Jacques Cafe is almost equal to Wingstop, and of Hibachi-San<Wingstop     
+         
+iii. Inference from the location data:
+
+We can't infer anything from the location data because all businesses have different postal codes
+
+SQL code:
+SELECT b.name
+	,h.hours
+	,b.review_count
+	,b.postal_code
+	,CASE 
+		WHEN ((stars >= 2) & (stars <= 3))
+			THEN '2-3 stars'
+		WHEN ((stars >= 4) & (stars <= 5))
+			THEN '4-5 stars'
+		ELSE 'Other'
+		END star_rating_in
+	,CASE 
+		WHEN (h.hours LIKE '%monday%')
+			THEN 1
+		WHEN (h.hours LIKE '%tuesday%')
+			THEN 2
+		WHEN (h.hours LIKE '%wednesday%')
+			THEN 3
+		WHEN (h.hours LIKE '%thursday%')
+			THEN 4
+		WHEN (h.hours LIKE '%friday%')
+			THEN 5
+		WHEN (h.hours LIKE '%saturday%')
+			THEN 6
+		WHEN (h.hours LIKE '%sunday%')
+			THEN 7
+		ELSE 'Other'
+		END week_day
+FROM (
+	(
+		business b INNER JOIN category c ON b.id = c.business_id
+		) LEFT JOIN hours h ON b.id = h.business_id
+	)
+WHERE ((b.city = 'Las Vegas') & (c.category = 'Restaurants'))
+ORDER BY week_day
+	,star_rating_in
+	
+		
+2. Differences between open and closed businesses:
+		
+i. Difference 1:
+
+Average Star rating-
+for closed=3.52
+for open=3.68
+         
+ii. Difference 2:
+
+Average Review count-
+for closed=23.2
+for open=31.76  
+         
+         
+SQL code:
+
+SELECT round((avg(stars)), 2) AS avg_star_rating
+	,round((avg(review_count)), 2) AS avg_review_count
+	,is_open
+FROM business
+GROUP BY is_open
+
+3. Data Selection:
+
+Aim is to analyze the performance of different companies    
+
+To carry out this analysis we will need data related to different metrics such as customer satisfaction using which we can analyze the performance of the comapny. Data required will be business name, number of reviews, star rating of business, review texts and categories. The number of reviews and star rating of business will give an idea about whether the cutomers are satisfied woth the companies products/services or not, and also tell us that is the no.of people giving reviews good enough, or do we need to collect more data on that. categories data is important because it will help us analyze that for a particular business operating in multiple categories, which categories are performing the best and which of them have a scope for improvement.
+
+Review texts can be used in multiple times by using a different key word search each time to understand the sentiment of the customers. For example, in this analysis I have considered to check texts which have a 'love' or 'hate' word present in it
+               
+Output of finished dataset:
++-----------------------------------------+-------+--------------+----------+-------------+
+| name                                    | stars | review_count | category | review_word |
++-----------------------------------------+-------+--------------+----------+-------------+
+| #1 Cochran Hyundai of South Hills       |   3.5 |           11 |     None | Other       |
+| #1 Cochran Monroeville Collision Center |   2.5 |            6 |     None | Other       |
+| 1 Nails &Spa Salon                      |   3.0 |            4 |     None | Other       |
+| 1-800-GOT-JUNK? Pittsburgh City         |   4.5 |           20 |     None | Other       |
+| 10 Factory Fitness Center               |   5.0 |            4 |     None | Other       |
+| 100th Bomb Group                        |   3.0 |          110 |     None | Other       |
+| 107.9 The Alternative                   |   3.5 |            7 |     None | Other       |
+| 12 West Brewing                         |   4.0 |           46 |     None | Other       |
+| 12th House Interiors                    |   5.0 |            4 |     None | Other       |
+| 131 Main                                |   4.0 |          247 |     None | Other       |
+| 1602                                    |   4.5 |           16 |     None | Other       |
+| 16th Hole at The Phoenix Open           |   4.5 |           26 |     None | Other       |
+| 18 Degrees Neighborhood Grill           |   3.0 |           72 |     None | Other       |
+| 1900 Asian Cuisine                      |   3.0 |           61 |     None | Other       |
+| 192 Airport Rocket                      |   4.0 |           15 |     None | Other       |
+| 1st Bank                                |   3.5 |            5 |     None | Other       |
+| 2-Save Auto Glass                       |   4.0 |            4 |     None | Other       |
+| 20 20 Opticians                         |   4.0 |            3 |     None | Other       |
+| 2001 Cleaners Inc                       |   4.0 |            9 |     None | Other       |
+| 201 West                                |   1.0 |            3 |     None | Other       |
+| 2010 Fusion Restaurant                  |   4.0 |            3 |     None | Other       |
+| 21 Lounge & Kitchen                     |   4.0 |           71 |     None | Other       |
+| 216 Bistro                              |   2.5 |            3 |     None | Other       |
+| 24 Hour Cleaners                        |   3.0 |            3 |     None | Other       |
+| 24 Hour Fitness - Green Valley          |   3.5 |           56 |     None | Other       |
++-----------------------------------------+-------+--------------+----------+-------------+
+(25 of 10669 total rows shown)
+         
+         
+SQl code for dataset:
+
+SELECT b.name
+	,b.stars
+	,b.review_count
+	,c.category
+	,CASE 
+		WHEN (r.TEXT LIKE '%love%')
+			THEN 'Reviews with love'
+		WHEN (r.TEXT LIKE '%hate%')
+			THEN 'Reviews with hate'
+		ELSE 'Other'
+		END review_word
+FROM (
+	(
+		business b LEFT JOIN review r ON b.id = r.business_id
+		) LEFT JOIN category c ON b.id = c.business_id
+	)
+ORDER BY b.name
